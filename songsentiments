@@ -1,0 +1,57 @@
+library(rvest)
+library(textclean)
+library(tidytext)
+library(tidyverse)
+library(syuzhet)
+
+# cleanup function
+cleanup <- function(x) {
+  library(textclean)
+  result <- tolower(x)
+  result <- replace_word_elongation(result)
+  result <- replace_contraction(result)
+  result <- strwrap(result, width = 72)
+  return(result)
+}
+
+# getting the web page and extracting the lyrics
+url <- 'http://www.metrolyrics.com/gimme-shelter-lyrics-rolling-stones.html'
+shelter_webpage <- read_html(url)
+shelter_nodes_raw <- webpage %>% html_nodes("p") %>% html_text()
+shelter_nodes_filtered <- shelter_nodes_raw[3:10]
+shelter_clean <- cleanup(shelter_nodes_filtered)
+shelter_df <- data_frame(txt = shelter_clean)
+# do a anti join of the stopwords if you want
+tidy_shelter <- shelter_df %>% unnest_tokens(word, txt)
+
+# setting up the sentiment dic (ie choosing NRC only)
+nrc <- sentiments %>% dplyr::filter(lexicon == "nrc") %>% dplyr::select(-score)
+bing <- sentiments %>% dplyr::filter(lexicon == "bing") %>% dplyr::select(-score)
+afinn <- sentiments %>% dplyr::filter(lexicon == "AFINN") %>% dplyr::select(-sentiment)
+
+# sentiments word by word
+
+View(shelter_nrc_emo_details_bla) <- tidy_shelter %>%
+  inner_join(nrc) %>% count(word, sentiment) 
+
+View(shelter_bing_emo_details_bla) <- tidy_shelter %>%
+  inner_join(bing) %>% count(word, sentiment) 
+
+
+View(shelter_afinn_emo_details_bla)
+shelter_afinn_emo_details_bla <- tidy_shelter %>%
+  inner_join(afinn) %>% count(word) 
+
+# sentiments overview
+shelter_nrc_emo <- tidy_shelter %>%
+  inner_join(nrc) %>% 
+  count(sentiment) %>% 
+  spread(sentiment, n, fill = 0) %>% 
+  mutate(tot_sentiment = positive - negative) %>%
+  select(tot_sentiment, negative, positive, anger, disgust, fear, sadness, anticipation, joy, trust, surprise)
+
+#sentiments details
+shelter_nrc_emo_details <- tidy_shelter %>%
+  inner_join(nrc) %>% count(word, sentiment) %>% 
+  spread(sentiment, n, fill = 0) %>% mutate(sentiment = positive - negative) %>% 
+  select(word, sentiment, anger, disgust, fear, sadness, anticipation, joy, trust, surprise)
