@@ -30,16 +30,13 @@ bing <- sentiments %>% dplyr::filter(lexicon == "bing") %>% dplyr::select(-score
 afinn <- sentiments %>% dplyr::filter(lexicon == "AFINN") %>% dplyr::select(-sentiment)
 
 # sentiments word by word
-
-View(shelter_nrc_emo_details_bla) <- tidy_shelter %>%
+shelter_nrc_emo_details <- tidy_shelter %>%
   inner_join(nrc) %>% count(word, sentiment) 
 
-View(shelter_bing_emo_details_bla) <- tidy_shelter %>%
+shelter_bing_emo_details <- tidy_shelter %>%
   inner_join(bing) %>% count(word, sentiment) 
 
-
-View(shelter_afinn_emo_details_bla)
-shelter_afinn_emo_details_bla <- tidy_shelter %>%
+shelter_afinn_emo_details <- tidy_shelter %>%
   inner_join(afinn) %>% count(word) 
 
 # sentiments overview
